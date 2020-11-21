@@ -1,3 +1,3 @@
 # node-authen
 
-For learning New technology course purpose
+For learning New Technology Course purpose
