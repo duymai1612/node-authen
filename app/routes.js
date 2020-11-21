@@ -47,6 +47,14 @@ module.exports = function (app, passport) {
          successRedirect: '/profile',
             failureRedirect: '/'
         }));
+
+    // GOOGLE ROUTES 
+    app.get('/auth/google', passport.authenticate('google', {scope: ['profile', 'email']}));
+    app.get('/auth/google/callback',
+        passport.authenticate('google', {
+            successRedirect: '/profile',
+            failureRedirect: '/'
+        }));
 };
 
 //Route middleware check user log in?
