@@ -35,6 +35,18 @@ module.exports = function (app, passport) {
         req.logout();
         res.redirect('/');
     });
+
+    // FACEBOOK ROUTES 
+
+    // yêu cầu xác thực bằng facebook
+    app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email']}));
+
+    // xử lý sau khi user cho phép xác thực với facebook
+    app.get('/auth/facebook/callback',
+        passport.authenticate('facebook', {
+         successRedirect: '/profile',
+            failureRedirect: '/'
+        }));
 };
 
 //Route middleware check user log in?
@@ -43,3 +55,4 @@ function isLoggedIn(req, res, next) {
         return next();
     res.redirect('/');
 }
+

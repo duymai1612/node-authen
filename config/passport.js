@@ -1,4 +1,7 @@
 var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
+
+var configAuth = require('./auth');
 var User = require('../app/models/user');
 
 module.exports = function (passport) {
@@ -71,6 +74,43 @@ module.exports = function (passport) {
         });
     }));
 
+     // FACEBOOK 
+    passport.use(new FacebookStrategy({
 
+        clientID: configAuth.facebookAuth.clientID,
+        clientSecret: configAuth.facebookAuth.clientSecret,
+        callbackURL: configAuth.facebookAuth.callbackURL,
+        profileFields: ['id','displayName','email','first_name','last_name','middle_name']
+    },
+    // Facebook sẽ gửi lại chuối token và thông tin profile của user
+    function (token, refreshToken, profile, done) {
+        // asynchronous
+        process.nextTick(function () {
+            // tìm trong db xem có user nào đã sử dụng facebook id này chưa
+            User.findOne({'facebook.id': profile.id}, function (err, user) {
+                if (err)
+                    return done(err);
+                // Nếu tìm thấy user, cho họ đăng nhập
+                if (user) {
+                    return done(null, user); // user found, return that user
+                } else {
+                    // nếu chưa có, tạo mới user
+                    var newUser = new User();
+                    // lưu các thông tin cho user
+                    newUser.facebook.id = profile.id;
+                    newUser.facebook.token = token;
+                    newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName; 
+                    newUser.facebook.email = profile.emails[0].value; // fb có thể trả lại nhiều email, chúng ta lấy cái đầu tiền
+                    // lưu vào db
+                    newUser.save(function (err) {
+                        if (err)
+                            throw err;
+                        // nếu thành công, trả lại user
+                        return done(null, newUser);
+                    });
+                }
+            });
+        });
+    }));
     
 };
